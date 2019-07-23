@@ -83,8 +83,6 @@ defmodule Alchemy.Cache.Guilds do
   end
 
   # The guild is either new, or partial info for an existing guild
-  @spec add_guild(map) ::
-          {:guild_create, [...]} | {:guild_online, [...]} | {:unavailable_guild, []}
   def add_guild(%{"unavailable" => true} = guild) do
     start_guild(guild)
   end
