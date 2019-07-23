@@ -5,7 +5,7 @@ defmodule Alchemy.Discord.Events do
   # This module is then used by EventStage.Cache
   alias Alchemy.{Channel, Channel.DMChannel, Guild.Emoji, Guild, Message, User, VoiceState}
   alias Alchemy.Guild.{GuildMember, Presence, Role}
-  alias Alchemy.Cache.Supervisor, as: Cache
+  # alias Alchemy.Cache.Supervisor, as: Cache
   alias Alchemy.Cache.{Channels, Guilds, PrivChannels}
   import Alchemy.Structs
 
@@ -35,12 +35,9 @@ defmodule Alchemy.Discord.Events do
     {:channel_delete, [Channel.from_map(channel)]}
   end
 
-  require Logger
-
   # The Cache manager is tasked of notifying, if, and only if this guild is new,
   # and not in the unavailable guilds loaded before
   def handle("GUILD_CREATE", guild) do
-    Logger.debug "GUILD_CREATE"
     Guilds.add_guild(guild)
   end
 
@@ -172,11 +169,12 @@ defmodule Alchemy.Discord.Events do
   end
 
   def handle("READY", payload) do
-    Cache.ready(
-      payload["user"],
-      payload["private_channels"],
-      payload["guilds"]
-    )
+    # Moved to Alchemy.Discord.Protocol:50
+    # Cache.ready(
+    #   payload["user"],
+    #   payload["private_channels"],
+    #   payload["guilds"]
+    # )
 
     {:ready, payload["shard"]}
   end

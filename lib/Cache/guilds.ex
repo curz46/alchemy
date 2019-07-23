@@ -82,31 +82,25 @@ defmodule Alchemy.Cache.Guilds do
     {:unavailable_guild, []}
   end
 
-  require Logger
-
   # The guild is either new, or partial info for an existing guild
+  @spec add_guild(map) ::
+          {:guild_create, [...]} | {:guild_online, [...]} | {:unavailable_guild, []}
   def add_guild(%{"unavailable" => true} = guild) do
-    result = start_guild(guild)
-    Logger.debug "Started by READY"
-    result
+    start_guild(guild)
   end
 
   def add_guild(%{"id" => id} = guild) do
     Channels.add_channels(guild["channels"], id)
 
-    result =
-      case Registry.lookup(:guilds, id) do
-        [] ->
-          start_guild(guild_index(guild))
-          {:guild_create, [Guild.from_map(guild)]}
+    case Registry.lookup(:guilds, id) do
+      [] ->
+        start_guild(guild_index(guild))
+        {:guild_create, [Guild.from_map(guild)]}
 
-        [{pid, _}] ->
-          GenServer.call(pid, {:merge, guild_index(guild)})
-          {:guild_online, [Guild.from_map(guild)]}
-      end
-
-    Logger.debug "Started by GUILD_CREATE"
-    result
+      [{pid, _}] ->
+        GenServer.call(pid, {:merge, guild_index(guild)})
+        {:guild_online, [Guild.from_map(guild)]}
+    end
   end
 
   def remove_guild(%{"id" => id, "unavailable" => true}) do

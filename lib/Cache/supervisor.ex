@@ -28,12 +28,8 @@ defmodule Alchemy.Cache.Supervisor do
     supervise(children, strategy: :one_for_one)
   end
 
-  require Logger
-
   # used to handle the READY event
   def ready(user, priv_channels, guilds) do
-    Logger.debug "READY"
-
     # we pipe this into to_list to force evaluationd
     Task.async_stream(guilds, &Guilds.add_guild/1)
     |> Enum.to_list()
