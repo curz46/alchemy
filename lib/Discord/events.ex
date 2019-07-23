@@ -35,9 +35,12 @@ defmodule Alchemy.Discord.Events do
     {:channel_delete, [Channel.from_map(channel)]}
   end
 
+  require Logger
+
   # The Cache manager is tasked of notifying, if, and only if this guild is new,
   # and not in the unavailable guilds loaded before
   def handle("GUILD_CREATE", guild) do
+    Logger.debug "GUILD_CREATE"
     Guilds.add_guild(guild)
   end
 
