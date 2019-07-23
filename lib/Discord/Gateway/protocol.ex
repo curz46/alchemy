@@ -3,6 +3,7 @@ defmodule Alchemy.Discord.Protocol do
   require Logger
   alias Alchemy.EventStage.EventBuffer
   alias Alchemy.Voice.Supervisor.Server
+  alias Alchemy.Cache.Supervisor, as: Cache
   import Alchemy.Discord.Payloads
 
   # Immediate heartbeat request
@@ -45,6 +46,13 @@ defmodule Alchemy.Discord.Protocol do
   # The READY event, part of the standard protocol
   def dispatch(%{"t" => "READY", "s" => seq, "d" => payload}, state) do
     EventBuffer.notify({"READY", Map.put(payload, "shard", state.shard)})
+
+    Cache.ready(
+      payload["user"],
+      payload["private_channels"],
+      payload["guilds"]
+    )
+
     Logger.debug("Shard #{inspect(state.shard)} received READY")
 
     {:ok,

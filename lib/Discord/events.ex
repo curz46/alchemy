@@ -5,7 +5,7 @@ defmodule Alchemy.Discord.Events do
   # This module is then used by EventStage.Cache
   alias Alchemy.{Channel, Channel.DMChannel, Guild.Emoji, Guild, Message, User, VoiceState}
   alias Alchemy.Guild.{GuildMember, Presence, Role}
-  alias Alchemy.Cache.Supervisor, as: Cache
+  # alias Alchemy.Cache.Supervisor, as: Cache
   alias Alchemy.Cache.{Channels, Guilds, PrivChannels}
   import Alchemy.Structs
 
@@ -97,6 +97,17 @@ defmodule Alchemy.Discord.Events do
     {:role_create, [to_struct(role, Role), id]}
   end
 
+  def handle("GUILD_ROLE_UPDATE", %{"guild_id" => id, "role" => new_role = %{"id" => role_id}}) do
+    old_role =
+      case Alchemy.Cache.role(id, role_id) do
+        {:ok, role} -> role
+        {:error, _} -> nil
+      end
+    Guilds.update_role(id, new_role)
+    new_role = to_struct(new_role, Role)
+    {:role_update, [old_role, new_role, id]}
+  end
+
   def handle("GUILD_ROLE_DELETE", %{"guild_id" => guild_id, "role_id" => id}) do
     Guilds.remove_role(guild_id, id)
     {:role_delete, [id, guild_id]}
@@ -154,11 +165,12 @@ defmodule Alchemy.Discord.Events do
   end
 
   def handle("READY", payload) do
-    Cache.ready(
-      payload["user"],
-      payload["private_channels"],
-      payload["guilds"]
-    )
+    # Moved to Alchemy.Discord.Protocol:50
+    # Cache.ready(
+    #   payload["user"],
+    #   payload["private_channels"],
+    #   payload["guilds"]
+    # )
 
     {:ready, payload["shard"]}
   end
