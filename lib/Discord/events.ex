@@ -16,11 +16,24 @@ defmodule Alchemy.Discord.Events do
   end
 
   def handle("CHANNEL_CREATE", channel) do
+    with %{"guild_id" => guild_id} = channel do
+      Guilds.add_channel(guild_id, channel)
+      Channels.add_channels([channel], guild_id)
+    end
     struct = Channel.from_map(channel)
     {:channel_create, [struct]}
   end
 
-  def handle("CHANNEL_UPDATE", channel) do
+  def handle("CHANNEL_UPDATE", %{"is_private" => true} = channel) do
+    PrivChannels.update_channel(channel)
+    # Should add but
+    # {:dm_channel_update, [Channel.from_map(channel)]}
+  end
+
+  def handle("CHANNEL_UPDATE", %{"id" => id} = channel) do
+    with {:ok, guild_id} = Alchemy.Cache.guild_id(id) do
+      Guilds.update_channel(guild_id, channel)
+    end
     {:channel_update, [Channel.from_map(channel)]}
   end
 
@@ -29,7 +42,10 @@ defmodule Alchemy.Discord.Events do
     {:dm_channel_delete, [to_struct(dm_channel, DMChannel)]}
   end
 
-  def handle("CHANNEL_DELETE", channel) do
+  def handle("CHANNEL_DELETE", %{"id" => id} = channel) do
+    with {:ok, guild_id} = Alchemy.Cache.guild_id(id) do
+      Guilds.remove_channel(guild_id, channel)
+    end
     Channels.remove_channel(channel["id"])
     {:channel_delete, [Channel.from_map(channel)]}
   end

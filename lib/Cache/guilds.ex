@@ -154,6 +154,18 @@ defmodule Alchemy.Cache.Guilds do
     call(guild_id, {:update, ["members"], index(members, ["user", "id"])})
   end
 
+  def add_channel(guild_id, %{"id" => id} = channel) do
+    call(guild_id, {:put, "channels", id, channel})
+  end
+
+  def update_channel(guild_id, channel) do
+    add_channel(guild_id, channel)
+  end
+
+  def remove_channel(guild_id, %{"id" => id} = _channel) do
+    call(guild_id, {:pop, "channels", id})
+  end
+
   ### Server ###
 
   # This call returns the full info, because the partial info from the event
